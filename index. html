@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroAppDebt Dashboard</title>
+    <!-- Imports Tailwind CSS for modern mobile styling -->
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+
+    <div class="max-w-md mx-auto p-4 min-h-screen flex flex-col justify-between">
+        <!-- Top Navigation -->
+        <header class="flex justify-between items-center py-4 border-b border-gray-200">
+            <h1 class="text-xl font-bold text-indigo-600">💸 ZeroAppDebt</h1>
+            <span class="bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-1 rounded-full">Active User</span>
+        </header>
+
+        <!-- Main Dashboard Metrics -->
+        <main class="flex-grow my-6 space-y-4">
+            <!-- Points Counter Box -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Available Balance</p>
+                <p class="text-3xl font-extrabold text-gray-900 mt-1" id="points-display">0 pts</p>
+                <p class="text-xs text-green-600 font-medium mt-1">≈ \$<span id="cash-equivalence">0.00</span> Towards Your Bill</p>
+            </div>
+            
+            <!-- Target Card Balance Tracker -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Target App Debt Balance</p>
+                <p class="text-3xl font-extrabold text-red-500 mt-1">\$150.00</p>
+                <p class="text-xs text-gray-400 mt-0.5">Linked: Apple Card (•••• 4321)</p>
+            </div>
+
+            <!-- Earning Hub Tasks Section -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <h3 class="text-sm font-bold text-gray-800 mb-3">Available Zero-Cost Tasks</h3>
+                <div class="space-y-3">
+                    <!-- Task Item 1 -->
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <h4 class="font-semibold text-gray-900 text-xs">Test Mobile Strategy Game</h4>
+                            <p class="text-[10px] text-gray-500">Reach Level 10 (Earns \$15.00 raw developer payout)</p>
+                        </div>
+                        <button onclick="simulateTaskCompletion(15.00)" class="bg-indigo-600 text-white text-[10px] font-bold px-3 py-1.5 rounded shadow">+1,050 pts</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Payoff Action -->
+        <footer class="pb-6">
+            <button onclick="requestDirectPayoff()" id="pay-btn" class="w-full bg-green-600 text-white font-bold text-sm py-3 rounded-lg shadow transition hover:bg-green-700">
+                Send Payout directly to Card
+            </button>
+        </footer>
+    </div>
+
+    <!-- Frontend Script Framework -->
+    <script>
+        let currentPoints = 0;
+
+        // Pull baseline metrics from your node database state on window startup
+        window.onload = async () => {
+            try {
+                const res = await fetch('/api/user-data');
+                const data = await res.json();
+                currentPoints = data.points;
+                updateVisualInterface();
+            } catch (err) {
+                console.error("Connection link to server.js offline:", err);
+            }
+        };
+
+        function updateVisualInterface() {
+            document.getElementById('points-display').innerText = currentPoints.toLocaleString() + ' pts';
+            document.getElementById('cash-equivalence').innerText = (currentPoints / 100).toFixed(2);
+        }
+
+        // Simulates sending an ad network postback event to your backend framework
+        async function simulateTaskCompletion(payoutUsd) {
+            try {
+                const response = await fetch('/api/v1/callbacks/offerwall-postback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ raw_usd_payout: payoutUsd })
+                });
+                
+                if (response.ok) {
+                    alert("Task Complete! Developer payout split 70/30 with platform.");
+                    // Pull refreshed data records
+                    const res = await fetch('/api/user-data');
+                    const data = await res.json();
+                    currentPoints = data.points;
+                    updateVisualInterface();
+                }
+            } catch (err) {
+                alert("Failed to reach processing server.");
+            }
+        }
+
+        function requestDirectPayoff() {
+            if (currentPoints < 2500) {
+                alert("Minimum balance payout milestone is 2,500 points (\$25.00). Keep completing free tasks!");
+            } else {
+                alert(`Success! Queued an automated ACH transaction of $${(currentPoints/100).toFixed(2)} straight onto your card statement.`);
+                currentPoints = 0;
+                updateVisualInterface();
+            }
+        }
+    </script>
+</body>
+</html>
