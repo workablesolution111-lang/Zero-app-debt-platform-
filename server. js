@@ -1,0 +1,45 @@
+{
+  "name": "public",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {}
+}// server.js - Node.js Backend Server with Express
+const express = require('express');
+const path = require('path');
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+// Serve your frontend index.html dashboard file
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Mock Database State for testing local app flows
+let userPoints = 2500;
+let totalUSDSpentOnDebt = 60.90;
+
+// API Route: Send current ledger values to your frontend dashboard
+app.get('/api/user-data', (req, res) => {
+    res.json({ points: userPoints, debtCleared: totalUSDSpentOnDebt });
+});
+
+// API Route: Handle ad network rewards using a 70/30 profit split
+app.post('/api/v1/callbacks/offerwall-postback', (req, res) => {
+    const { raw_usd_payout } = req.body;
+    if (!raw_usd_payout) return res.status(400).send("Missing parameters");
+
+    const rawPayout = parseFloat(raw_usd_payout);
+    const userAllocationUsd = Number((rawPayout * 0.70).toFixed(2)); // 70% goes to card bill
+    const platformMarginUsd = Number((rawPayout * 0.30).toFixed(2));  // 30% kept as your profit
+    
+    const pointsToCredit = Math.floor(userAllocationUsd * 100);
+    userPoints += pointsToCredit;
+
+    console.log(`💰 Earned Payout! Profit Margin Saved: \$${platformMarginUsd}. Credited User: ${pointsToCredit} pts.`);
+    res.status(200).send("OK");
+});
+
+app.listen(PORT, () => console.log(`🚀 Server brain running locally on http://localhost:${PORT}`));
+
