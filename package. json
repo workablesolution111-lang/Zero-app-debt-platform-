@@ -1,0 +1,13 @@
+  "name": "zero-app-debt-mvp",
+  "version": "1.0.0",
+  "description": "Zero-out-of-pocket mobile app debt clearing platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "author": "Your Name",
+  "license": "ISC"
+}
